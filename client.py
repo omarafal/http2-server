@@ -5,6 +5,7 @@ import hyperframe.frame as hf
 from h2.config import H2Configuration
 from h2.connection import H2Connection
 from h2.events import ResponseReceived, DataReceived
+import sys
 
 def run_http2_client(host, port):
     # Create an SSL context for the client
@@ -68,5 +69,5 @@ def run_http2_client(host, port):
                 tls.sendall(conn.data_to_send())
                 # conn.close_connection()
                 # sock.close()
-if __name__ == "__main__":
-    run_http2_client("127.0.0.1", 8443)
+
+run_http2_client("127.0.0.1", int(sys.argv[1]))
