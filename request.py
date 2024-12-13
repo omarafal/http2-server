@@ -14,7 +14,7 @@ def parse_headers(event):
 def handle_request(event):
     """
     Handle requests according to header information
-    RETURNS: response_headers
+    RETURNS: [response_headers, data]
     """
     parsed_req = parse_headers(event)
 
@@ -35,3 +35,17 @@ def handle_request(event):
     #     pass
 
     return response_headers
+
+def handle_data():
+    """
+    Handle requested data
+    RETURNS: [HTTP status code, requested data if exists]
+    """
+
+    try:
+        with open("index.html", "r") as file:
+            content = file.read()
+    except FileNotFoundError:
+        content = "<h1>404 Not Found</h1>"
+
+    # return data
