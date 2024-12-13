@@ -62,6 +62,7 @@ def run_http2_client(host, port):
 
                         # try:
                         conn.end_stream(event.stream_id)
+                        conn.close_connection()
                         # except h2.exceptions.StreamClosedError:
                         #     conn.send_data(event.stream_id, data="Closing data", end_stream=True)
                         #     sock.sendall(conn.data_to_send())
@@ -71,6 +72,7 @@ def run_http2_client(host, port):
                         # conn.end_stream(event.stream_id)
 
                 tls.sendall(conn.data_to_send())
+                # break
 
 if __name__ == "__main__":
-    run_http2_client("127.0.0.1", 8442)
+    run_http2_client("127.0.0.1", 8443)

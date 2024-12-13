@@ -6,6 +6,9 @@ from h2.config import H2Configuration
 import headers
 from datetime import datetime
 from misc import *
+from random import randint
+
+global cl_id
 
 def handle_connection(sock):
     # Initialize HTTP/2 connection
@@ -15,11 +18,13 @@ def handle_connection(sock):
     sequence of bytes that both client and server exchange to start the protocol.
     """
     conn.initiate_connection()
-   
+
     # function to send to client the provided data in arg
     sock.sendall(conn.data_to_send())
 
-    while True:
+    mainBreak = True
+
+    while mainBreak:
         try:
             data = sock.recv(65535) # This is the raw binary data coming from the client over the network in bytes.
             if not data:
@@ -27,6 +32,7 @@ def handle_connection(sock):
 
             events = conn.receive_data(data)
             for event in events:
+                # print(f"EVENT {event}")
                 if isinstance(event, h2.events.RequestReceived):
                     # Send response headers
                     stream_id = event.stream_id
@@ -41,15 +47,20 @@ def handle_connection(sock):
                         content = "<h1>404 Not Found</h1>"
 
                     conn.send_data(stream_id, content.encode(), end_stream=True)
+                    # conn.end_stream(event.stream_id)
+                elif isinstance(event, h2.events.StreamEnded):
+                    # end connection
+                    conn.close_connection()
+                    mainBreak = False
 
             sock.sendall(conn.data_to_send())
-        
-        except ConnectionResetError:
-            print_cmd("Connection forcibly closed by client.")
-            break # break for now, put handle later
-            #NOTE: for some reason, after breaking it still listens and sends information
-            #Another NOTE: Figured it out, it's because there is a while loop in with socket.socket
-
+            
+            # sock.cl
+        except:
+            if ConnectionResetError:
+                print_cmd("Connection forcibly closed by client.")
+                break
+    
 # Set up SSL for HTTP/2
 context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_3
@@ -58,15 +69,27 @@ context.load_cert_chain(certfile="server.crt", keyfile="server.key")
 context.set_alpn_protocols(["h2"])
 
 HOST = '127.0.0.1'
-PORT = 8442
+
+try:
+    PORT = 8443
+except OSError:
+    PORT = 8442
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP) as server:
     server.bind((HOST, PORT))
     server.listen(5)
     print_cmd(f"HTTP/2 Server running on https://{HOST}:{PORT}")
 
+    # socket.setdefaulttimeout(0.1)
+
     while True:
-        client_sock, _ = server.accept()
-        print_cmd("Client connected.")
-        with context.wrap_socket(client_sock, server_side=True) as tls_sock:
-            handle_connection(tls_sock)
+        try:
+            cl_id = randint(0, 5)
+            client_sock, _ = server.accept()
+            # while True:
+            print_cmd("Client connected.")
+            with context.wrap_socket(client_sock, server_side=True) as tls_sock:
+                handle_connection(tls_sock)
+                # client_sock.close()
+        except KeyboardInterrupt:
+            exit()

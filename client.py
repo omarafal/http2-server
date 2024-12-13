@@ -55,6 +55,7 @@ def run_http2_client(host, port):
 
                 events = conn.receive_data(data)
                 for event in events:
+                    # print(f"EVENT {event}")
                     if isinstance(event, ResponseReceived):
                         print("Response headers:", dict(event.headers))
                     elif isinstance(event, DataReceived):
@@ -62,15 +63,10 @@ def run_http2_client(host, port):
 
                         # try:
                         conn.end_stream(event.stream_id)
-                        # except h2.exceptions.StreamClosedError:
-                        #     conn.send_data(event.stream_id, data="Closing data", end_stream=True)
-                        #     sock.sendall(conn.data_to_send())
-                        #     return
-                        # if event.stream_id in conn.open_streams:
-
-                        # conn.end_stream(event.stream_id)
+                    
 
                 tls.sendall(conn.data_to_send())
-
+                # conn.close_connection()
+                # sock.close()
 if __name__ == "__main__":
-    run_http2_client("127.0.0.1", 8442)
+    run_http2_client("127.0.0.1", 8443)
