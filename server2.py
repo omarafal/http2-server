@@ -3,7 +3,7 @@ import ssl
 import h2
 from h2.connection import H2Connection
 from h2.config import H2Configuration
-import headers
+import request
 from datetime import datetime
 from misc import *
 from random import randint
@@ -36,18 +36,13 @@ def handle_connection(sock):
                 if isinstance(event, h2.events.RequestReceived):
                     # Send response headers
                     stream_id = event.stream_id
+
+                    # NOTE: Use this variable instead of calling the function again and again
+                    req = request.handle_request(event)
                     
-                    conn.send_headers(stream_id, headers.handle_request(event), end_stream=False)
-
-                    # Read and send the requested document (defaulting to index.html)
-                    try:
-                        with open("index.html", "r") as file:
-                            content = file.read()
-                    except FileNotFoundError:
-                        content = "<h1>404 Not Found</h1>"
-
-                    conn.send_data(stream_id, content.encode(), end_stream=True)
-                    # conn.end_stream(event.stream_id)
+                    conn.send_headers(stream_id, req[0], end_stream=False)
+                    
+                    conn.send_data(stream_id, req[1][1], end_stream=True)
                 elif isinstance(event, h2.events.StreamEnded):
                     # end connection
                     conn.close_connection()
@@ -58,7 +53,7 @@ def handle_connection(sock):
             # sock.cl
         except:
             if ConnectionResetError:
-                print_cmd("Connection forcibly closed by client.")
+                print_cmd("A connection reset happened.")
                 break
     
 # Set up SSL for HTTP/2
@@ -80,16 +75,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP) as se
     server.listen(5)
     print_cmd(f"HTTP/2 Server running on https://{HOST}:{PORT}")
 
-    # socket.setdefaulttimeout(0.1)
+    socket.setdefaulttimeout(2) # set timeout incase it stucks
 
     while True:
-        try:
-            cl_id = randint(0, 5)
-            client_sock, _ = server.accept()
-            # while True:
-            print_cmd("Client connected.")
-            with context.wrap_socket(client_sock, server_side=True) as tls_sock:
-                handle_connection(tls_sock)
-                # client_sock.close()
-        except KeyboardInterrupt:
-            exit()
+        cl_id = randint(0, 5)
+        client_sock, _ = server.accept()
+        # while True:
+        print_cmd("Client connected.")
+        with context.wrap_socket(client_sock, server_side=True) as tls_sock:
+            handle_connection(tls_sock)
+            # client_sock.close()

@@ -1,3 +1,5 @@
+from misc import *
+
 def parse_headers(event):
     """
     Parse incoming headers
@@ -14,38 +16,38 @@ def parse_headers(event):
 def handle_request(event):
     """
     Handle requests according to header information
-    RETURNS: [response_headers, data]
+    RETURNS: [response_headers, response_data]
     """
     parsed_req = parse_headers(event)
-
-    response_headers = [
-        (':status', '200'),
-        ('content-type', 'text/html'),
-    ]
-
+    # print_debug("THIS RAN")
+    # print(parsed_req)
     # init list of headers
     # response_headers = []
 
-    # for key, val in parsed_req:
-    #     if key == "method":
-    #         if val == "GET":
-    #             pass
-    #     if key == "path":
-    #         pass
-    #     pass
+    response_data = grab(parsed_req["path"])
 
-    return response_headers
+    response_headers = [
+        (':status', response_data[0]),
+        ('content-type', 'text/html'),
+    ]
 
-def handle_data():
+    return [response_headers, response_data]
+
+def grab(path):
     """
-    Handle requested data
+    Grab requested data
     RETURNS: [HTTP status code, requested data if exists]
     """
 
-    try:
-        with open("index.html", "r") as file:
-            content = file.read()
-    except FileNotFoundError:
-        content = "<h1>404 Not Found</h1>"
+    if path == "/" or path == "/index.html":
+        path = "index.html"
+    else:
+        path = path.replace("/", "")
 
-    # return data
+    try:
+        with open(path, "r") as file:
+            return ["200 OK", file.read().encode()]
+        
+    except FileNotFoundError:
+        with open("notfound.html", "r") as file:
+            return ["404 NOT FOUND", file.read().encode()]
