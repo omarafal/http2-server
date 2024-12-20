@@ -9,6 +9,7 @@ def parse_headers(event):
     parsed_headers = {}
     
     for key, value in event.headers:
+        # print(event.headers)
         parsed_headers[key.decode().replace(":", "")] = value.decode()
 
     return parsed_headers
@@ -20,7 +21,7 @@ def handle_request(event):
     """
     parsed_req = parse_headers(event)
     # print_debug("THIS RAN")
-    # print(parsed_req)
+    print(parsed_req)
     # init list of headers
     # response_headers = []
 
