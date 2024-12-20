@@ -32,18 +32,18 @@ def get_fields(req):
 
 
 
-def alpn_preface(req):
+def preface(req):
     """
     Function to handle incoming ALPN
     """
     # fields = get_fields(req)
-    alpn_headers = {
+    pre_headers = {
         "status": "HTTP/1.1 101 Switching Protocols",
         "Connection": "Upgrade",
         "Upgrade": "h2c",
     }
 
-    return alpn_headers
+    return pre_headers
 
 # store stream IDs
 active_users = []
@@ -67,7 +67,7 @@ def start_server():
                 request = client_socket.recv(1024).decode('utf-8')
 
                 # start with alpn (server-side)
-                step1 = make_frame(alpn_preface(request))
+                step1 = make_frame(preface(request))
                 print_cmd(request, "REQUEST RECEIVED")
                 print(f"Request: {request}")
                 client_socket.sendall(step1.encode('utf-8'))
