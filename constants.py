@@ -1,4 +1,4 @@
-status = {
+STATUS = {
     100: "Continue",
     101: "Switching Protocols",
     102: "Processing",
@@ -62,3 +62,5 @@ status = {
     510: "Not Extended",
     511: "Network Authentication Required"
 }
+
+FORBIDDEN = ["/for.html"]

@@ -1,6 +1,7 @@
 import socket
 import ssl
 from main_serv import main
+from misc import *
 
 def alpn():
     # Create a socket
@@ -18,28 +19,14 @@ def alpn():
     # Accept a connection and wrap it with SSL
     while True:
         client_socket, address = server_socket.accept()
-        print(f"Connection from {address}")
+        print_cmd(f"Connection from {address}")
         try:
             with context.wrap_socket(client_socket, server_side=True) as tls_socket:
                 selected_protocol = tls_socket.selected_alpn_protocol()
-                print(f"ALPN Protocol Negotiated: {selected_protocol}")
-
-                # # Wait for an HTTP request
-                # request = tls_socket.recv(1024).decode('utf-8')
-                # print("Request received:")
-                # print(request)
-
-                # # Send a basic HTTP response
-                # response = (
-                #     "HTTP/2.0 200 OK\r\n"
-                #     "Content-Type: text/html\r\n"
-                #     "Content-Length: 19\r\n"
-                #     "\r\n"
-                #     "Hello from the server!"
-                # )
-                # tls_socket.sendall(response.encode('utf-8'))
+                print_cmd(selected_protocol, "ALPN Protocol Negotiated")
 
                 main(tls_socket)
+                print_cmd("CLOSING CONNECTION")
 
         except ssl.SSLError as e:
             print(f"SSL Error: {e}")
