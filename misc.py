@@ -12,11 +12,9 @@ def b64_decode(msg):
     return str(base64.b64decode(msg).decode("utf-8"))
 
 def make_frame(header):
-    
     """
     Function to create request from dictionaries provided
     """
-
     frame = ""
     for key, value in header.items():
         frame += f"{key}: {value}\r\n"

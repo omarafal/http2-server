@@ -35,7 +35,7 @@ def alpn_client():
     # Wrap the socket with SSL
     with context.wrap_socket(client_socket, server_hostname="localhost") as tls_socket:
         selected_protocol = tls_socket.selected_alpn_protocol()
-        print(f"ALPN Protocol Negotiated: {selected_protocol}")
+        print_cmd(selected_protocol, f"ALPN Protocol Negotiated")
 
         # Send PRI Frame and SETTINGS
         pri = pri_make()

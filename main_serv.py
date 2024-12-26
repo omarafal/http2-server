@@ -3,6 +3,7 @@ import struct
 from misc import *
 from constants import *
 from datetime import datetime
+import re
 
 def get_fields(req):
     fields = {}
@@ -40,6 +41,26 @@ def parse_msg(msg):
 
     return di
 
+server_push_send
+
+def server_push_find(content):
+    """
+    Function that takes in content of a file and checks for any embedded files and returns their names/paths
+    If no paths found returns empty list
+    """
+    try:
+        found_embd = re.findall("[\"][a-zA-Z\S]+[.][a-zA-Z\S]+[\"]", content)
+    except re.PatternError:
+        print_cmd("No match found.")
+        return []
+
+    found_emb_rt = []
+
+    for match in found_embd:
+        found_emb_rt.append(match.replace("\"", ""))
+
+    return found_emb_rt
+
 def get_file(path):
     """
     Returns file and status code
@@ -61,6 +82,7 @@ def get_file(path):
         try:
             with open(f"{path}") as file:
                 content = file.read()
+                server_push_find(content)
                 stat = f"200 {STATUS[200]}"
 
         except FileNotFoundError:
