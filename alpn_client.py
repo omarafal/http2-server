@@ -5,6 +5,7 @@ import sys
 
 stream_id = 0
 path = sys.argv[1]
+port = sys.argv[2]
 
 def pri_make():
     """
@@ -16,7 +17,7 @@ def pri_make():
         "Type": 4,
         "Flags": 0,
         "Stream Identifier": f"{stream_id}",
-        "SETTINGS": "Max Frame Size = 16384",
+        "SETTINGS": "SETTINGS_MAX_FRAME_SIZE=16384 SETTINGS_ENABLE_PUSH=1",
     }
 
     send = make_frame(req)
@@ -25,7 +26,7 @@ def pri_make():
 
 def alpn_client():
     # Create a socket
-    client_socket = socket.create_connection(('localhost', 8443))
+    client_socket = socket.create_connection(('localhost', int(port)))
 
     # Create SSL context
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)

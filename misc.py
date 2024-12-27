@@ -5,6 +5,9 @@ import base64
 def send(tls_socket, msg):
     tls_socket.sendall(base64.b64encode(msg.encode("utf-8")))
 
+def b64_encode(msg):
+    return base64.b64encode(msg.encode("utf-8"))
+
 def b64_decode(msg):
     """
     Decode base64 encoded messages and return it in pure string format
