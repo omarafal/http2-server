@@ -4,8 +4,8 @@ from misc import *
 import sys
 
 stream_id = 0
-path = sys.argv[1]
-port = sys.argv[2]
+# path = sys.argv[1]
+port = 8443
 
 def pri_make():
     """
@@ -24,7 +24,7 @@ def pri_make():
 
     return send
 
-def alpn_client():
+def alpn_client(path,log):
     # Create a socket
     client_socket = socket.create_connection(('localhost', int(port)))
 
@@ -36,7 +36,7 @@ def alpn_client():
     # Wrap the socket with SSL
     with context.wrap_socket(client_socket, server_hostname="localhost") as tls_socket:
         selected_protocol = tls_socket.selected_alpn_protocol()
-        print_cmd(selected_protocol, f"ALPN Protocol Negotiated")
+        print_cmd(log,selected_protocol, f"ALPN Protocol Negotiated")
 
         # Send PRI Frame and SETTINGS
         pri = pri_make()
@@ -44,7 +44,7 @@ def alpn_client():
 
         # Await ACK From Server
         data = b64_decode(tls_socket.recv(1024))
-        print_cmd(data, "ACK ON SETTINGS")
+        print_cmd(log,data, "ACK ON SETTINGS")
 
         # Request File
         HTTP_REQUEST = {
@@ -60,7 +60,10 @@ def alpn_client():
         data = "s" # init data dummy for while (lol)
         while data:
             data = b64_decode(tls_socket.recv(1024))
-            print_cmd(data, "SERVER RESPONSE") if data != "" else None
+            print_cmd(log,data, "SERVER RESPONSE") if data != "" else None
 
-# Run the client
-alpn_client()
+# # Run the client
+# alpn_client()
+
+# if __name__ == "__main__":
+#     alpn_client()
