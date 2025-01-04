@@ -45,16 +45,39 @@ def get_file(path):
     """
     content = ""
     stat = ""
+    
+    try:
 
-    if path in FORBIDDEN:
-        with open("./403.html") as file:
-            content = file.read()
-            stat = f"403 {STATUS[403]}"
+        if not path.startswith("/") or ".." in path:
+                with open("./400.html") as file: 
+                    content = file.read()
+                    stat = f"400 {STATUS[400]}"
+                return [content, stat]
+        
+        if path in FORBIDDEN:
+            with open("./403.html") as file:
+                content = file.read()
+                stat = f"403 {STATUS[403]}"
+            return [content, stat]
+        
+        if path in UNAUTHORIZED:
+            with open("./401.html") as file:
+                content = file.read()
+                stat = f"401 {STATUS[401]}"
+            return [content, stat]
 
-    else:
+        if path in REDIRECTS:
+            new_path, permanent = REDIRECTS[path]
+            stat = f"{301 if permanent else 302} {STATUS[301 if permanent else 302]}"
+            return [f"Redirect to {new_path}", stat]
+        
+        if path in NO_CONTENT_PATHS:
+                stat = f"204 {STATUS[204]}"
+                return ["", stat]
+
         if path == "/":
             path = "/index.html"
-    
+        
         path = f".{path}"
 
         try:
@@ -67,6 +90,11 @@ def get_file(path):
                 content = file.read()
                 stat = f"404 {STATUS[404]}"
 
+    except Exception as e:
+        with open("./500.html") as file:
+            content = file.read()
+            stat = f"500 {STATUS[500]}"
+        print(f"Internal server error: {e}")
     return [content, stat]
 
 # Main flow of program
@@ -99,14 +127,19 @@ def main(tls_socket):
     except PromiseError:
         pass
 
-    headerBF = make_frame({
-        "status": f"{res_stat}",
-        "content-type": "text/html",
-        "date": f"{datetime.now()}",
-        "content-length": f"{len(res_data)}"
-    })
-
     # send requested file header
+
+    headerBF = {
+        "status": f"{res_stat}",
+        "date": f"{datetime.now()}",
+    }
+
+    if res_data != "":
+        headerBF["content-type"] = "text/html"
+        headerBF["content-length"] = f"{len(res_data)}"
+
+    headerBF = make_frame(headerBF)
+
     header_frame = {
         "length": len(headerBF),
         "type": 1, # 1 for HEADER frame
@@ -126,7 +159,7 @@ def main(tls_socket):
         "payload": f"{res_data}",
     }
 
-    send(tls_socket, make_frame(data_frame))
+    send(tls_socket, make_frame(data_frame)) if res_data != "" else None
 
     # send promise data
     try:
