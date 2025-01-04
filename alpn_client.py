@@ -12,11 +12,11 @@ def pri_make():
     Preface function for settings
     """
     req = {
-        "Magic": "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n",
-        "Length": 24,
-        "Type": 4,
-        "Flags": 0,
-        "Stream Identifier": f"{stream_id}",
+        "magic": "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n",
+        "length": 24,
+        "type": 4,
+        "flags": 0,
+        "stream-identifier": f"{stream_id}",
         "SETTINGS": "SETTINGS_MAX_FRAME_SIZE=16384 SETTINGS_ENABLE_PUSH=1",
     }
 
@@ -49,9 +49,19 @@ def alpn_client():
         # Request File
         HTTP_REQUEST = {
             "method" : "GET",
-            "path": f"/{path}",
+            "path": f"{path}",
             "host": "localhost",
             "stream-identifier": stream_id+1 if stream_id == 0 else stream_id+2,
+        }
+
+        make_frame(HTTP_REQUEST)
+
+        HEADER_REQUEST = {
+            "length": 24,
+            "type": 4,
+            "flags": 0,
+            "stream-identifier": f"{stream_id}",
+            "settings": "SETTINGS_MAX_FRAME_SIZE=16384 SETTINGS_ENABLE_PUSH=1",
         }
 
         send(tls_socket, make_frame(HTTP_REQUEST))
