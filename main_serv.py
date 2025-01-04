@@ -3,9 +3,10 @@ from constants import *
 from datetime import datetime
 from push_promise import *
 
+
 def get_fields(req):
     fields = {}
-    for field in req.split("\r\n")[:len(req.split("\r\n"))-1]:
+    for field in req.split("\r\n")[:len(req.split("\r\n")) - 1]:
         try:
             fields[field.split(":")[0]] = field.split(":")[1].strip()
         except:
@@ -13,16 +14,18 @@ def get_fields(req):
 
     return fields
 
+
 def ack_settings():
     msg = {
         "length": 0,
         "type": 4,
-        "flags": 1, # For ACK
+        "flags": 1,  # For ACK
         "stream-identifier": 0
     }
 
     send = make_frame(msg)
     return send
+
 
 def parse_msg(msg):
     """
@@ -38,6 +41,7 @@ def parse_msg(msg):
         di[temp[0].strip()] = temp[1].strip()
 
     return di
+
 
 def get_file(path):
     """
@@ -77,7 +81,7 @@ def get_file(path):
 
         if path == "/":
             path = "/index.html"
-        
+    
         path = f".{path}"
 
         try:
@@ -97,15 +101,16 @@ def get_file(path):
         print(f"Internal server error: {e}")
     return [content, stat]
 
+
 # Main flow of program
-def main(tls_socket):
+def main(tls_socket,log):
     # Receive the SETTINGS data
     data = tls_socket.recv(1024)
 
     # First SETTINGS Frame
     settings = b64_decode(data)
-    print_cmd(settings, "SETTINGS RECEIVED")
-    
+    print_cmd(log,settings, "SETTINGS RECEIVED")
+
     # ACK on SETTINGS
     send(tls_socket, ack_settings())
 
@@ -113,14 +118,14 @@ def main(tls_socket):
     data = tls_socket.recv(1024)
     request = b64_decode(data)
 
-    print_cmd(request, "REQUEST FROM CLIENT")
+    print_cmd(log,request, "REQUEST FROM CLIENT")
 
     # Handle request
     parsed_req = parse_msg(request)
     res_data, res_stat = get_file(parsed_req["path"])
 
     promise = Promise(tls_socket, res_stat, parsed_req["stream-identifier"], res_data)
-    
+
     # send promise headers
     try:
         promise.send_headers()
@@ -142,10 +147,10 @@ def main(tls_socket):
 
     header_frame = {
         "length": len(headerBF),
-        "type": 1, # 1 for HEADER frame
-        "flags": 4, # 4 for END_HEADERS
+        "type": 1,  # 1 for HEADER frame
+        "flags": 4,  # 4 for END_HEADERS
         "stream-identifier": parsed_req["stream-identifier"],
-        "header-block-fragment": f"({headerBF})" # FOR NOW PLAIN TEXT, ENCODE AND MAKE HPACK ON
+        "header-block-fragment": f"({headerBF})"  # FOR NOW PLAIN TEXT, ENCODE AND MAKE HPACK ON
     }
 
     send(tls_socket, make_frame(header_frame))
@@ -153,8 +158,8 @@ def main(tls_socket):
     # send requested file data
     data_frame = {
         "length": len(res_data),
-        "type": 0, # 0 for DATA
-        "flags": 1, # 1 for END_STREAM
+        "type": 0,  # 0 for DATA
+        "flags": 1,  # 1 for END_STREAM
         "stream-identifier": parsed_req["stream-identifier"],
         "payload": f"{res_data}",
     }

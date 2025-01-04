@@ -2,11 +2,9 @@ from datetime import datetime
 from termcolor import colored
 import base64
 
+
 def send(tls_socket, msg):
     tls_socket.sendall(base64.b64encode(msg.encode("utf-8")))
-
-def b64_encode(msg):
-    return base64.b64encode(msg.encode("utf-8"))
 
 def b64_decode(msg):
     """
@@ -24,11 +22,13 @@ def make_frame(header):
 
     return frame
 
-def print_cmd(data, header=None):
+def print_cmd(log,data, header=None):
     """
     Format printing
     """
     print(f"[{datetime.now()}] {data}" if header==None else (f"[{datetime.now()}] {colored(header, "red")}{"\n" if len(data) > 6 else ": "}{data}"))
+    log(f"[{datetime.now()}] {data}" if header == None else (f"[{datetime.now()}] {colored(header, "red")}{"\n" if len(data) > 6 else ": "}{data}"))
+
 
 def print_debug(string):
     """
