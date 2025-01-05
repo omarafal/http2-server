@@ -97,7 +97,7 @@ class MainWindow(QWidget):
         if not self.client_thread or not self.client_thread.isRunning():
             path, ok = QInputDialog.getText(self, "Client Request", "Enter file path:")
             if ok:
-                self.client_thread = ClientThread(path, log=self.clientlog)
+                self.client_thread = ClientThread(f"/{path}", log=self.clientlog)
                 self.client_thread.log_signal.connect(lambda msg: self.clientlog(msg))
                 self.client_thread.start()
                 self.clientlog("Client started.")

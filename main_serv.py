@@ -2,7 +2,7 @@ from misc import *
 from constants import *
 from datetime import datetime
 from push_promise import *
-
+import hpack_own
 
 def get_fields(req):
     fields = {}
@@ -25,23 +25,6 @@ def ack_settings():
 
     send = make_frame(msg)
     return send
-
-
-def parse_msg(msg):
-    """
-    Function to return a dictionary form of incoming messages
-    """
-
-    sep = msg.strip().split("\r\n")
-
-    di = {}
-
-    for entry in sep:
-        temp = entry.split(":")
-        di[temp[0].strip()] = temp[1].strip()
-
-    return di
-
 
 def get_file(path):
     """
@@ -121,7 +104,14 @@ def main(tls_socket,log):
     print_cmd(log,request, "REQUEST FROM CLIENT")
 
     # Handle request
-    parsed_req = parse_msg(request)
+    # parsed_req = hpack_own.decode()
+
+    byte_data = bytes(str(parse_msg(request)["header-block-fragment"]).replace("b", "", 1).replace("\"", "", 2), 'utf-8').decode('unicode_escape').encode('latin1')
+
+    parsed_req = hpack_own.decode(byte_data)
+
+    print_cmd(log, f"{str(parsed_req)}\n", "DECODED HEADER BLOCK")
+
     res_data, res_stat = get_file(parsed_req["path"])
 
     promise = Promise(tls_socket, res_stat, parsed_req["stream-identifier"], res_data)
@@ -143,14 +133,14 @@ def main(tls_socket,log):
         headerBF["content-type"] = "text/html"
         headerBF["content-length"] = f"{len(res_data)}"
 
-    headerBF = make_frame(headerBF)
+    headerBF_str = make_frame(headerBF)
 
     header_frame = {
-        "length": len(headerBF),
+        "length": len(headerBF_str),
         "type": 1,  # 1 for HEADER frame
         "flags": 4,  # 4 for END_HEADERS
         "stream-identifier": parsed_req["stream-identifier"],
-        "header-block-fragment": f"({headerBF})"  # FOR NOW PLAIN TEXT, ENCODE AND MAKE HPACK ON
+        "header-block-fragment": f"{hpack_own.encode(headerBF)}"
     }
 
     send(tls_socket, make_frame(header_frame))

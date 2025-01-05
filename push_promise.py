@@ -1,6 +1,7 @@
 import re
 from misc import *
 from errors import *
+import hpack_own
 
 class Promise:
     def __init__(self, tls_socket, status, curr_stream_id, content):
@@ -15,20 +16,22 @@ class Promise:
         """
         Function that sends the first PUSH_PROMISE frame
         """
-        headerBF = make_frame({
+        headerBF = {
             "status": f"{status}",
             "content-type": f"text/{resource_name.split(".")[1]}",
             "date": f"{datetime.now()}",
             "content-length": f"{len(content)}"
-        })
+        }
+
+        headerBF_str = make_frame(headerBF)
 
         header_frame = {
-            "length": len(headerBF),
+            "length": len(headerBF_str),
             "type": 5, # 5 for PUSH_PROMISE
             "flags": 4, # 4 for END_HEADERS
             "stream-identifier": self.curr_stream_id,
             "promised-stream-id": self.stream_id,
-            "header-block-fragment": f"({headerBF})" # FOR NOW PLAIN TEXT, ENCODE AND MAKE HPACK ON
+            "header-block-fragment": f"{hpack_own.encode(headerBF)}" # FOR NOW PLAIN TEXT, ENCODE AND MAKE HPACK ON
         }
         self.stream_id += 2
 

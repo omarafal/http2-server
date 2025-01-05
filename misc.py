@@ -27,7 +27,7 @@ def print_cmd(log,data, header=None):
     Format printing
     """
     print(f"[{datetime.now()}] {data}" if header==None else (f"[{datetime.now()}] {colored(header, "red")}{"\n" if len(data) > 6 else ": "}{data}"))
-    log(f"[{datetime.now()}] {data}" if header == None else (f"[{datetime.now()}] {colored(header, "red")}{"\n" if len(data) > 6 else ": "}{data}"))
+    log(f"[{datetime.now()}] {data}" if header == None else (f"[{datetime.now()}] {header}{"\n" if len(data) > 6 else ": "}{data}"))
 
 
 def print_debug(string):
@@ -35,3 +35,18 @@ def print_debug(string):
     Format printing for debugging
     """
     print(f"\033[44m{string}\033[0m")
+
+def parse_msg(msg):
+    """
+    Function to return a dictionary form of incoming messages
+    """
+
+    sep = msg.strip().split("\r\n")
+
+    di = {}
+
+    for entry in sep:
+        temp = entry.split(":")
+        di[temp[0].strip()] = temp[1].strip()
+
+    return di

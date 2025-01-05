@@ -2,6 +2,7 @@ import ssl
 import socket
 from misc import *
 import sys
+import hpack_own
 
 stream_id = 0
 # path = sys.argv[1]
@@ -61,16 +62,30 @@ def alpn_client(path,log):
             "type": 4,
             "flags": 0,
             "stream-identifier": f"{stream_id}",
+            "header-block-fragment": f"{hpack_own.encode(HTTP_REQUEST)}",
             "settings": "SETTINGS_MAX_FRAME_SIZE=16384 SETTINGS_ENABLE_PUSH=1",
         }
 
-        send(tls_socket, make_frame(HTTP_REQUEST))
+        send(tls_socket, make_frame(HEADER_REQUEST))
 
         # Await Server Response
         data = "s" # init data dummy for while (lol)
         while data:
             data = b64_decode(tls_socket.recv(1024))
             print_cmd(log,data, "SERVER RESPONSE") if data != "" else None
+
+            if "header-block-fragment" in data:
+                data = parse_msg(data)
+
+                data_l = list(str(data["header-block-fragment"]))
+                data_l.pop()
+                data_l.pop(0)
+                data_l.pop(0)
+
+                data = "".join(data_l)
+
+                bytes_data = bytes(data, 'utf-8').decode('unicode_escape').encode('latin1')
+                print_cmd(log, f"{str(hpack_own.decode(bytes_data))}\n", "DECODED HEADER BLOCK")
 
 # # Run the client
 # alpn_client()

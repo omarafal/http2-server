@@ -10,7 +10,7 @@ def handle_client(tls_socket, address, log):
     """
     Function to handle a single client connection.
     """
-    print_cmd(log=log, data="Connection from {address}")
+    print_cmd(log=log, data=f"Connection from {address}")
     try:
         selected_protocol = tls_socket.selected_alpn_protocol()
         print_cmd(log,selected_protocol, "ALPN Protocol Negotiated")
