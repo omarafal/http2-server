@@ -55,15 +55,14 @@ def alpn_client(path,log):
             "stream-identifier": stream_id+1 if stream_id == 0 else stream_id+2,
         }
 
-        make_frame(HTTP_REQUEST)
+        client_req = make_frame(HTTP_REQUEST)
 
         HEADER_REQUEST = {
-            "length": 24,
+            "length": len(client_req),
             "type": 4,
             "flags": 0,
             "stream-identifier": f"{stream_id}",
             "header-block-fragment": f"{hpack_own.encode(HTTP_REQUEST)}",
-            "settings": "SETTINGS_MAX_FRAME_SIZE=16384 SETTINGS_ENABLE_PUSH=1",
         }
 
         send(tls_socket, make_frame(HEADER_REQUEST))
