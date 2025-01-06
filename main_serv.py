@@ -1,6 +1,4 @@
-from misc import *
 from constants import *
-from datetime import datetime
 from push_promise import *
 import hpack_own
 

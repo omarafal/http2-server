@@ -3,7 +3,6 @@ import ssl
 import threading
 from main_serv import main
 from misc import *
-import sys
 
 
 def handle_client(tls_socket, address, log):
@@ -54,7 +53,3 @@ def alpn(log):
         client_thread.daemon = True  # Allow server to exit even if threads are running
         client_thread.start()
 
-# alpn()
-
-# if __name__ == "__main__":
-#     alpn()

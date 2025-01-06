@@ -1,7 +1,6 @@
 import ssl
 import socket
 from misc import *
-import sys
 import hpack_own
 
 stream_id = 0
@@ -86,8 +85,4 @@ def alpn_client(path,log):
                 bytes_data = bytes(data, 'utf-8').decode('unicode_escape').encode('latin1')
                 print_cmd(log, f"{str(hpack_own.decode(bytes_data))}\n", "DECODED HEADER BLOCK")
 
-# # Run the client
-# alpn_client()
 
-# if __name__ == "__main__":
-#     alpn_client()
